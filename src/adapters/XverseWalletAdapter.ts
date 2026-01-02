@@ -1,12 +1,13 @@
 import type {
   WalletAdapter,
   WalletAdapterFactory,
+  WalletAdapterMetadata,
 } from "../WalletAdapters.types"
 import { createAvailability } from "../utils/createAdapterAvailability"
 
 export const XVERSE_PROVIDER_ID = "XverseProviders.BitcoinProvider"
 
-const metadata = {
+export const metadata: WalletAdapterMetadata = {
   name: "Xverse",
   iconUrl: () => import("../_/xverse.png").then(m => m.default),
   websiteUrl: "https://xverse.app/",

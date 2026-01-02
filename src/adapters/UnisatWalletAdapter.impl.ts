@@ -3,6 +3,7 @@ import {
   UnisatCompatibleWalletAdapterImpl,
 } from "../utils/UnisatCompatibleWalletAdapterImpl"
 import { WalletAdapter } from "../WalletAdapters.types"
+import { metadata } from "./UnisatWalletAdapter"
 
 /**
  * Derivation path (Native SegWit) (BIP-84): m/84'/0'/0'/0/address_index
@@ -21,7 +22,7 @@ export class UnisatWalletAdapterImpl
      *
      * https://docs.unisat.io/dev/unisat-developer-service/unisat-wallet
      */
-    super(provider, "UniSat")
+    super(provider, metadata.name)
   }
 
   sendBitcoinFeeRateCapability = "required" as const

@@ -15,7 +15,7 @@ const adapterId = "bitget.bitcoin"
 /**
  * https://web3.bitget.com/en/docs/wallet/brand-assets.html
  */
-const metadata: WalletAdapterMetadata = {
+export const metadata: WalletAdapterMetadata = {
   name: "Bitget",
   iconUrl: () => import("../_/bitget.png").then(m => m.default),
   websiteUrl: "https://web3.bitget.com/",

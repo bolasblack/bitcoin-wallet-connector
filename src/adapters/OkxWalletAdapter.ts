@@ -1,13 +1,14 @@
 import type {
   WalletAdapter,
   WalletAdapterFactory,
+  WalletAdapterMetadata,
 } from "../WalletAdapters.types"
 import type { UnisatCompatibleProviderAPI } from "../utils/UnisatCompatibleWalletAdapterImpl"
 import { createAvailability } from "../utils/createAdapterAvailability"
 
 const adapterId = "okxwallet.bitcoin"
 
-const metadata = {
+export const metadata: WalletAdapterMetadata = {
   name: "OKX Wallet",
   iconUrl: () => import("../_/okx.png").then(m => m.default),
   websiteUrl: "https://web3.okx.com/",

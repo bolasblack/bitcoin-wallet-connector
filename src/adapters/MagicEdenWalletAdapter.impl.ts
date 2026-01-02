@@ -2,17 +2,18 @@ import { hex } from "@scure/base"
 import { addressToScriptPubKey } from "../utils/bitcoinAddressHelpers"
 import { getBitcoinNetwork } from "../utils/bitcoinNetworkHelpers"
 import {
+  XverseCompatibleWalletAdapterImpl_legacy,
+  XverseCompatibleWalletAdapterImplAddress,
+} from "../utils/XverseCompatibleWalletAdapterImpl_legacy"
+import {
   WalletAdapter,
   WalletAdapter_onAddressesChanged_callback,
   WalletAdapterAddressPurpose,
   WalletAdapterAddressType,
   WalletAdapterBitcoinNetwork,
 } from "../WalletAdapters.types"
-import {
-  XverseCompatibleWalletAdapterImpl_legacy,
-  XverseCompatibleWalletAdapterImplAddress,
-} from "../utils/XverseCompatibleWalletAdapterImpl_legacy"
-import { MAGICEDEN_PROVIDER_ID } from "./MagicEdenWalletAdapter"
+import { MAGICEDEN_PROVIDER_ID, metadata } from "./MagicEdenWalletAdapter"
+import { LOCAL_STORAGE_KEY_PREFIX } from "../constants"
 
 interface MagicEdenBitcoinProviderEvents {
   accountsChanged: [
@@ -34,7 +35,7 @@ export interface MagicEdenBitcoinProvider {
   ) => void
 }
 
-const localStorageKey = `app:${MAGICEDEN_PROVIDER_ID}:`
+const localStorageKeyPrefix = `${LOCAL_STORAGE_KEY_PREFIX}:${MAGICEDEN_PROVIDER_ID}`
 
 export class MagicEdenWalletAdapterImpl
   extends XverseCompatibleWalletAdapterImpl_legacy
@@ -48,8 +49,8 @@ export class MagicEdenWalletAdapterImpl
   ) {
     super({
       network,
-      localStorageKey,
-      walletDisplayName: "Magic Eden",
+      localStorageKeyPrefix,
+      walletDisplayName: metadata.name,
       getProvider: async () => {
         return provider as any
       },

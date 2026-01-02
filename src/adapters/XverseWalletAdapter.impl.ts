@@ -6,16 +6,16 @@ import {
 import { getBitcoinNetwork } from "../utils/bitcoinNetworkHelpers"
 import { checkNever } from "../utils/misc"
 import {
+  XverseCompatibleWalletAdapterImpl,
+  XverseCompatibleWalletAdapterImplAddress,
+} from "../utils/XverseCompatibleWalletAdapterImpl"
+import {
   WalletAdapter,
   WalletAdapterAddressPurpose,
   WalletAdapterAddressType,
   WalletAdapterBitcoinNetwork,
 } from "../WalletAdapters.types"
-import {
-  XverseCompatibleWalletAdapterImpl,
-  XverseCompatibleWalletAdapterImplAddress,
-} from "../utils/XverseCompatibleWalletAdapterImpl"
-import { XVERSE_PROVIDER_ID } from "./XverseWalletAdapter"
+import { metadata, XVERSE_PROVIDER_ID } from "./XverseWalletAdapter"
 
 declare global {
   interface Window {
@@ -36,7 +36,7 @@ export class XverseWalletAdapterImpl
 {
   constructor() {
     super({
-      walletDisplayName: "Xverse",
+      walletDisplayName: metadata.name,
       getProviderId: async () => {
         return XVERSE_PROVIDER_ID
       },

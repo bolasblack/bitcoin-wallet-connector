@@ -3,6 +3,7 @@ import {
   UnisatCompatibleWalletAdapterImpl,
 } from "../utils/UnisatCompatibleWalletAdapterImpl"
 import { WalletAdapter } from "../WalletAdapters.types"
+import { metadata } from "./BitgetWalletAdapter"
 
 /**
  * Derivation path (BIP-44): m/44'/0'/0'/0/ address_index
@@ -17,6 +18,6 @@ export class BitgetWalletAdapterImpl
      *
      * https://web3.bitget.com/zh-CN/docs/provider-api/btc.html
      */
-    super(provider, "Bitget")
+    super(provider, metadata.name)
   }
 }

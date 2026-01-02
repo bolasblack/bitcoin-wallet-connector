@@ -16,7 +16,7 @@ import type {
 
 const adapterId = "unisat"
 
-const metadata: WalletAdapterMetadata = {
+export const metadata: WalletAdapterMetadata = {
   name: "UniSat",
   /**
    * https://next-cdn.unisat.io/_/2025-v965/UniSat%20Logo.zip

@@ -3,11 +3,12 @@ import { createAvailability } from "../utils/createAdapterAvailability"
 import type {
   WalletAdapter,
   WalletAdapterFactory,
+  WalletAdapterMetadata,
 } from "../WalletAdapters.types"
 
-const adapterId = "LeatherProvider.BitcoinProvider"
+export const adapterId = "LeatherProvider.BitcoinProvider"
 
-const metadata = {
+export const metadata: WalletAdapterMetadata = {
   name: "Leather",
   iconUrl: () => import("../_/leather.svg").then(m => m.default),
   websiteUrl: "https://leather.io/",

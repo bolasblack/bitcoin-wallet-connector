@@ -2,6 +2,7 @@ import type {
   WalletAdapter,
   WalletAdapterBitcoinNetwork,
   WalletAdapterFactory,
+  WalletAdapterMetadata,
 } from "../WalletAdapters.types"
 import { createAvailability } from "../utils/createAdapterAvailability"
 import type { MagicEdenBitcoinProvider } from "./MagicEdenWalletAdapter.impl"
@@ -15,6 +16,16 @@ declare global {
 }
 
 export const MAGICEDEN_PROVIDER_ID = "magiceden.bitcoin"
+
+export const metadata: WalletAdapterMetadata = {
+  name: "Magic Eden",
+  /**
+   * https://docs-wallet.magiceden.io/resources/logos-and-brand-assets
+   */
+  iconUrl: () => import("../_/magiceden.png").then(m => m.default),
+  websiteUrl: "https://wallet.magiceden.io/",
+  downloadUrl: "https://wallet.magiceden.io/download",
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const buildAvailability = (network: WalletAdapterBitcoinNetwork) =>
@@ -37,15 +48,7 @@ export const MagicEdenWalletAdapterFactory = (options: {
 
   return {
     adapterId: MAGICEDEN_PROVIDER_ID,
-    /**
-     * https://docs-wallet.magiceden.io/resources/logos-and-brand-assets
-     */
-    metadata: {
-      name: "Magic Eden",
-      iconUrl: () => import("../_/magiceden.png").then(m => m.default),
-      websiteUrl: "https://wallet.magiceden.io/",
-      downloadUrl: "https://wallet.magiceden.io/download",
-    },
+    metadata,
     getAdapter: () => availability,
   }
 }

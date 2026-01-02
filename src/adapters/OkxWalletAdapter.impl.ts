@@ -1,14 +1,15 @@
-import { UserRejectError, BitcoinWalletAdapterError } from "../utils/error"
-import {
-  SignMessageResult,
-  WalletAdapter,
-  WalletAdapter_onAddressesChanged_callback,
-} from "../WalletAdapters.types"
+import { BitcoinWalletAdapterError, UserRejectError } from "../utils/error"
 import {
   UniSatEvents,
   UnisatCompatibleProviderAPI,
   UnisatCompatibleWalletAdapterImpl,
 } from "../utils/UnisatCompatibleWalletAdapterImpl"
+import {
+  SignMessageResult,
+  WalletAdapter,
+  WalletAdapter_onAddressesChanged_callback,
+} from "../WalletAdapters.types"
+import { metadata } from "./LeatherWalletAdapter"
 
 enum RpcErrorCode {
   PARSE_ERROR = -32700,
@@ -56,7 +57,7 @@ export class OkxWalletAdapterImpl
      *
      * https://web3.okx.com/zh-hans/build/dev-docs/sdks/chains/bitcoin/provider
      */
-    super(provider, "OKX")
+    super(provider, metadata.name)
     this.okxwallet = provider
   }
 

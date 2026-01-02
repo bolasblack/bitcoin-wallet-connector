@@ -33,20 +33,20 @@ export type XverseCompatibleWalletAdapterImplAddress = WalletAdapterAddress & {
 
 export class XverseCompatibleWalletAdapterImpl_legacy implements WalletAdapter {
   protected readonly network: WalletAdapterBitcoinNetwork
-  protected readonly localStorageKey: string
+  protected readonly localStorageKeyPrefix: string
   protected readonly walletDisplayName: string
   protected readonly getProvider: XverseCompatibleWalletAdapterGetProviderFn
   protected readonly parseAddresses: XverseCompatibleWalletAdapterParsedAddressesFn
 
   constructor(info: {
     network: WalletAdapterBitcoinNetwork
-    localStorageKey: string
+    localStorageKeyPrefix: string
     walletDisplayName: string
     getProvider: XverseCompatibleWalletAdapterGetProviderFn
     parseAddresses: XverseCompatibleWalletAdapterParsedAddressesFn
   }) {
     this.network = info.network
-    this.localStorageKey = info.localStorageKey
+    this.localStorageKeyPrefix = info.localStorageKeyPrefix
     this.walletDisplayName = info.walletDisplayName
     this.getProvider = info.getProvider
     this.parseAddresses = info.parseAddresses
@@ -56,9 +56,14 @@ export class XverseCompatibleWalletAdapterImpl_legacy implements WalletAdapter {
     return import("sats-connect")
   }
 
+  protected get connectAddresses_localStorageKey(): string {
+    return `${this.localStorageKeyPrefix}:connectedAddresses`
+  }
+
   protected retrieveConnectedAddress(): GetAddressResponse | undefined {
     let resp: GetAddressResponse | undefined
-    const stored = localStorage.getItem(this.localStorageKey) || undefined
+    const stored =
+      localStorage.getItem(this.connectAddresses_localStorageKey) || undefined
     if (stored != null) {
       try {
         resp = JSON.parse(stored)
@@ -70,7 +75,7 @@ export class XverseCompatibleWalletAdapterImpl_legacy implements WalletAdapter {
           throw new Error("Invalid stored addresses")
         }
       } catch {
-        localStorage.removeItem(this.localStorageKey)
+        localStorage.removeItem(this.connectAddresses_localStorageKey)
       }
     }
     return resp
@@ -78,7 +83,10 @@ export class XverseCompatibleWalletAdapterImpl_legacy implements WalletAdapter {
   protected async updateConnectedAddress(
     addresses: GetAddressResponse["addresses"],
   ): Promise<void> {
-    localStorage.setItem(this.localStorageKey, JSON.stringify({ addresses }))
+    localStorage.setItem(
+      this.connectAddresses_localStorageKey,
+      JSON.stringify({ addresses }),
+    )
   }
 
   async connect(): Promise<void> {
@@ -116,7 +124,7 @@ export class XverseCompatibleWalletAdapterImpl_legacy implements WalletAdapter {
   }
 
   async disconnect(): Promise<void> {
-    localStorage.removeItem(this.localStorageKey)
+    localStorage.removeItem(this.connectAddresses_localStorageKey)
     return Promise.resolve()
   }
 
