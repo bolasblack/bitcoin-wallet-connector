@@ -1,11 +1,12 @@
 import type { RequestFn, RpcErrorBody, RpcErrorResponse } from "@leather.io/rpc"
 import { hex } from "@scure/base"
+import { LOCAL_STORAGE_KEY_PREFIX } from "../constants"
 import {
   addressToScriptPubKey,
   getTapInternalKeyOf_P2TR_publicKey,
 } from "../utils/bitcoinAddressHelpers"
 import { getBitcoinNetwork } from "../utils/bitcoinNetworkHelpers"
-import { UserRejectError, BitcoinWalletAdapterError } from "../utils/error"
+import { BitcoinWalletAdapterError, UserRejectError } from "../utils/error"
 import {
   SignMessageAlgorithm,
   SignMessageResult,
@@ -17,6 +18,7 @@ import {
   WalletAdapterBitcoinNetwork,
   WalletAdapterNotConnectedError,
 } from "../WalletAdapters.types"
+import { adapterId, metadata } from "./LeatherWalletAdapter"
 
 type GetAddressesResponseData = any
 
@@ -41,9 +43,8 @@ enum RpcErrorCode {
 
 type Addresses = (WalletAdapterAddress & { publicKey: string })[]
 
-const LEATHER_PROVIDER_ID = "LeatherProvider.BitcoinProvider"
-
-const localStorageKey = `app:${LEATHER_PROVIDER_ID}:`
+const localStorageKeyPrefix = `${LOCAL_STORAGE_KEY_PREFIX}:${adapterId}`
+const connectedAddress_localStorageKey = `${localStorageKeyPrefix}:connectedAddress`
 
 /**
  * Derivation path (BIP-84): m/84'/0'/ account_index '/0/0
@@ -51,11 +52,10 @@ const localStorageKey = `app:${LEATHER_PROVIDER_ID}:`
 export class LeatherWalletAdapterImpl implements WalletAdapter {
   constructor(private request: RequestFn) {}
 
-  private readonly walletDisplayName = "Leather"
-
   private retrieveConnectedAddress(): GetAddressesResponseData | undefined {
     let resp: GetAddressesResponseData | undefined
-    const stored = localStorage.getItem(localStorageKey) || undefined
+    const stored =
+      localStorage.getItem(connectedAddress_localStorageKey) || undefined
     if (stored != null) {
       try {
         resp = JSON.parse(stored)
@@ -67,7 +67,7 @@ export class LeatherWalletAdapterImpl implements WalletAdapter {
           throw new Error("Invalid stored addresses")
         }
       } catch {
-        localStorage.removeItem(localStorageKey)
+        localStorage.removeItem(connectedAddress_localStorageKey)
       }
     }
     return resp
@@ -81,12 +81,15 @@ export class LeatherWalletAdapterImpl implements WalletAdapter {
          */
         this.request("getAddresses"),
       )
-      localStorage.setItem(localStorageKey, JSON.stringify(resp))
+      localStorage.setItem(
+        connectedAddress_localStorageKey,
+        JSON.stringify(resp),
+      )
     }
   }
 
   async disconnect(): Promise<void> {
-    localStorage.removeItem(localStorageKey)
+    localStorage.removeItem(connectedAddress_localStorageKey)
     return Promise.resolve()
   }
 
@@ -94,7 +97,7 @@ export class LeatherWalletAdapterImpl implements WalletAdapter {
     const resp = this.retrieveConnectedAddress()
 
     if (resp == null) {
-      throw new WalletAdapterNotConnectedError(this.walletDisplayName)
+      throw new WalletAdapterNotConnectedError(metadata.name)
     }
 
     const addresses = resp.addresses.filter(
@@ -245,7 +248,7 @@ export class LeatherWalletAdapterImpl implements WalletAdapter {
       account => account.address === signIndices[0]?.[0],
     )
     if (signingAccount == null) {
-      throw new WalletAdapterNotConnectedError(this.walletDisplayName)
+      throw new WalletAdapterNotConnectedError(metadata.name)
     }
 
     const resp: any = await handleRpcError(

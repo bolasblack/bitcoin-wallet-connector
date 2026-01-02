@@ -1,3 +1,4 @@
+import { LOCAL_STORAGE_KEY_PREFIX } from "./constants"
 import { AvailabilitySubscription } from "./utils/createAdapterAvailability"
 import { StateChannel, StateChannelListener } from "./utils/StateChannel"
 import {
@@ -6,8 +7,8 @@ import {
   WalletAdapterNotConnectedError,
 } from "./WalletAdapters.types"
 
-const previousConnectWalletAdapterIdLocalStorageKey =
-  "app:BitcoinWalletConnector:previousConnectWallet"
+const localStorageKeyPrefix = `${LOCAL_STORAGE_KEY_PREFIX}:BitcoinWalletConnector`
+const previousConnectWalletAdapterId_localStorageKey = `${localStorageKeyPrefix}:previousConnectWallet`
 
 export interface ConnectInfo {
   adapterId: string
@@ -92,7 +93,7 @@ export class BitcoinWalletConnector {
 
     await finalAdapter.connect()
     localStorage.setItem(
-      previousConnectWalletAdapterIdLocalStorageKey,
+      previousConnectWalletAdapterId_localStorageKey,
       adapterId,
     )
 
@@ -104,7 +105,7 @@ export class BitcoinWalletConnector {
     if (info == null) return
 
     await info.adapter.disconnect()
-    localStorage.removeItem(previousConnectWalletAdapterIdLocalStorageKey)
+    localStorage.removeItem(previousConnectWalletAdapterId_localStorageKey)
 
     this.connectedInfoState.setValue(null)
   }
@@ -142,7 +143,7 @@ export class BitcoinWalletConnector {
 
   private get previousConnectedWallet(): string | undefined {
     const adapterId =
-      localStorage.getItem(previousConnectWalletAdapterIdLocalStorageKey) ||
+      localStorage.getItem(previousConnectWalletAdapterId_localStorageKey) ||
       undefined
 
     if (this.factories.some(factory => factory.adapterId === adapterId)) {
