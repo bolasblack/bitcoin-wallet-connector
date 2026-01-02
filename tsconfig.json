@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig.json",
+  "compilerOptions": {
+    "module": "preserve",
+    "target": "esnext",
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "jsx": "preserve",
+    "sourceMap": true,
+    "strict": true,
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": false,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "outDir": "lib",
+    "noEmit": true
+  },
+  "exclude": ["lib", "node_modules"],
+  "include": [".storybook/**/*", "src/**/*", "*.ts", "*.mts"]
+}
