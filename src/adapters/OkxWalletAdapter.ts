@@ -1,6 +1,6 @@
 import type {
   WalletAdapter,
-  WalletAdapterStatic,
+  WalletAdapterFactory,
 } from "../WalletAdapters.types"
 import type { UnisatCompatibleProviderAPI } from "../utils/UnisatCompatibleWalletAdapterImpl"
 import { createAvailability } from "../utils/createAdapterAvailability"
@@ -9,7 +9,7 @@ const adapterId = "okxwallet.bitcoin"
 
 const metadata = {
   name: "OKX Wallet",
-  iconUrl: import("../_/okx.png").then(m => m.default),
+  iconUrl: () => import("../_/okx.png").then(m => m.default),
   websiteUrl: "https://web3.okx.com/",
   downloadUrl: "https://web3.okx.com/download",
 }
@@ -30,8 +30,10 @@ const availability = createAvailability<
   },
 })
 
-export const OkxWalletAdapter: WalletAdapterStatic<WalletAdapter> = {
-  adapterId,
-  metadata,
-  getAdapter: () => availability,
+export function OkxWalletAdapterFactory(): WalletAdapterFactory<WalletAdapter> {
+  return {
+    adapterId,
+    metadata,
+    getAdapter: () => availability,
+  }
 }

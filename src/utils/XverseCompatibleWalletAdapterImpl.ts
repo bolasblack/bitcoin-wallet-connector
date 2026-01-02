@@ -133,6 +133,10 @@ export class XverseCompatibleWalletAdapterImpl implements WalletAdapter {
     )
   }
 
+  /**
+   * @internal
+   * @experimental
+   */
   sendInscriptionFeeRateCapability = "unavailable" as const
 
   async signAndFinalizePsbt(

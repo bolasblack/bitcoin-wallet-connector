@@ -2,14 +2,14 @@ import type { RequestFn } from "@leather.io/rpc"
 import { createAvailability } from "../utils/createAdapterAvailability"
 import type {
   WalletAdapter,
-  WalletAdapterStatic,
+  WalletAdapterFactory,
 } from "../WalletAdapters.types"
 
 const adapterId = "LeatherProvider.BitcoinProvider"
 
 const metadata = {
   name: "Leather",
-  iconUrl: import("../_/leather.svg").then(m => m.default),
+  iconUrl: () => import("../_/leather.svg").then(m => m.default),
   websiteUrl: "https://leather.io/",
   downloadUrl: "https://leather.io/wallet",
 }
@@ -28,8 +28,10 @@ const availability = createAvailability<RequestFn, WalletAdapter>({
   },
 })
 
-export const LeatherWalletAdapter: WalletAdapterStatic<WalletAdapter> = {
-  adapterId,
-  metadata,
-  getAdapter: () => availability,
+export function LeatherWalletAdapterFactory(): WalletAdapterFactory<WalletAdapter> {
+  return {
+    adapterId,
+    metadata,
+    getAdapter: () => availability,
+  }
 }

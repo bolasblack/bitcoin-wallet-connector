@@ -1,7 +1,7 @@
 import type {
   WalletAdapter,
   WalletAdapterBitcoinNetwork,
-  WalletAdapterStatic,
+  WalletAdapterFactory,
 } from "../WalletAdapters.types"
 import { createAvailability } from "../utils/createAdapterAvailability"
 import type { MagicEdenBitcoinProvider } from "./MagicEdenWalletAdapter.impl"
@@ -30,10 +30,10 @@ const buildAvailability = (network: WalletAdapterBitcoinNetwork) =>
     },
   })
 
-export const MagicEdenWalletAdapterFactory = (
-  network: WalletAdapterBitcoinNetwork,
-): WalletAdapterStatic<WalletAdapter> => {
-  const availability = buildAvailability(network)
+export const MagicEdenWalletAdapterFactory = (options: {
+  network: WalletAdapterBitcoinNetwork
+}): WalletAdapterFactory<WalletAdapter> => {
+  const availability = buildAvailability(options.network)
 
   return {
     adapterId: MAGICEDEN_PROVIDER_ID,
@@ -42,7 +42,7 @@ export const MagicEdenWalletAdapterFactory = (
      */
     metadata: {
       name: "Magic Eden",
-      iconUrl: import("../_/magiceden.png").then(m => m.default),
+      iconUrl: () => import("../_/magiceden.png").then(m => m.default),
       websiteUrl: "https://wallet.magiceden.io/",
       downloadUrl: "https://wallet.magiceden.io/download",
     },

@@ -200,8 +200,15 @@ export class LeatherWalletAdapterImpl implements WalletAdapter {
     return { txid: resp.txid }
   }
 
+  /**
+   * @internal
+   * @experimental
+   */
   sendInscriptionFeeRateCapability = "available" as const
-
+  /**
+   * @internal
+   * @experimental
+   */
   async sendInscription(
     fromAddress: string,
     receiverAddress: string,

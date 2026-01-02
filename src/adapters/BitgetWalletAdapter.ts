@@ -3,7 +3,7 @@ import type { UnisatCompatibleProviderAPI } from "../utils/UnisatCompatibleWalle
 import type {
   WalletAdapter,
   WalletAdapterMetadata,
-  WalletAdapterStatic,
+  WalletAdapterFactory,
 } from "../WalletAdapters.types"
 
 /**
@@ -17,7 +17,7 @@ const adapterId = "bitget.bitcoin"
  */
 const metadata: WalletAdapterMetadata = {
   name: "Bitget",
-  iconUrl: import("../_/bitget.png").then(m => m.default),
+  iconUrl: () => import("../_/bitget.png").then(m => m.default),
   websiteUrl: "https://web3.bitget.com/",
   downloadUrl: "https://web3.bitget.com/en/wallet-download",
 }
@@ -37,8 +37,10 @@ const availability = createAvailability<
   },
 })
 
-export const BitgetWalletAdapter: WalletAdapterStatic<WalletAdapter> = {
-  adapterId,
-  metadata,
-  getAdapter: () => availability,
+export function BitgetWalletAdapterFactory(): WalletAdapterFactory<WalletAdapter> {
+  return {
+    adapterId,
+    metadata,
+    getAdapter: () => availability,
+  }
 }

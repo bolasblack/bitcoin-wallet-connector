@@ -4,7 +4,11 @@ import {
   addressToScriptPubKeyHex,
   getAddressType,
 } from "../utils/bitcoinAddressHelpers"
-import { BitcoinNetwork, isMainnet } from "../utils/bitcoinNetworkHelpers"
+import {
+  BitcoinNetwork,
+  getBitcoinNetwork,
+  isMainnet,
+} from "../utils/bitcoinNetworkHelpers"
 import { BitcoinWalletAdapterError } from "../utils/error"
 import { checkNever } from "../utils/misc"
 import {
@@ -15,6 +19,8 @@ import {
   WalletAdapterAddressPurpose,
   WalletAdapterAddressType,
   WalletAdapterBitcoinNetwork,
+  WalletAdapterFactory,
+  WalletAdapterSendBitcoinCapability,
 } from "../WalletAdapters.types"
 
 const randomTapInternalKey =
@@ -27,15 +33,52 @@ const randomRedeemScript = hex.encode(
   Script.encode(["OP_1", hex.decode(randomPublicKey), "OP_1", "CHECKMULTISIG"]),
 )
 
-export class MockAddressWalletAdapter implements WalletAdapter {
+export const MockAddressWalletAdapterFactory = (
+  network: WalletAdapterBitcoinNetwork,
+  mockedAdapter: WalletAdapterFactory<WalletAdapter>,
+  mockedAddresses: Partial<{
+    bitcoin: Partial<WalletAdapterAddress> & { address: string }
+    ordinals: Partial<WalletAdapterAddress> & { address: string }
+  }>,
+): WalletAdapterFactory<WalletAdapter> => {
+  return {
+    adapterId: `mocked.${mockedAdapter.adapterId}`,
+    metadata: {
+      ...mockedAdapter.metadata,
+      name: `Mocked ${mockedAdapter.metadata.name}`,
+    },
+    getAdapter() {
+      const availability = mockedAdapter.getAdapter()
+
+      return {
+        subscribe(listener) {
+          return availability.subscribe(adapter => {
+            listener(
+              new MockAddressWalletAdapter(network, adapter, mockedAddresses),
+            )
+          })
+        },
+      }
+    },
+  }
+}
+
+class MockAddressWalletAdapter implements WalletAdapter {
+  private network: BitcoinNetwork
+
   constructor(
-    private network: BitcoinNetwork,
+    network: WalletAdapterBitcoinNetwork,
     private inner: WalletAdapter,
     private addresses: Partial<{
       bitcoin: Partial<WalletAdapterAddress> & { address: string }
       ordinals: Partial<WalletAdapterAddress> & { address: string }
     }>,
-  ) {}
+  ) {
+    this.network =
+      network === WalletAdapterBitcoinNetwork.TESTNET
+        ? getBitcoinNetwork("testnet")
+        : getBitcoinNetwork("mainnet")
+  }
 
   async connect(): Promise<void> {
     await this.inner.connect()
@@ -149,37 +192,6 @@ export class MockAddressWalletAdapter implements WalletAdapter {
     )
   }
 
-  get sendBitcoinFeeRateCapability(): "unavailable" | "available" | "required" {
-    return this.inner.sendBitcoinFeeRateCapability
-  }
-
-  get sendInscriptionFeeRateCapability():
-    | "unavailable"
-    | "available"
-    | "required" {
-    return this.inner.sendInscriptionFeeRateCapability
-  }
-
-  sendBitcoin(
-    fromAddress: string,
-    receiverAddress: string,
-    satoshiAmount: bigint,
-  ): Promise<{ txid: string }> {
-    throw new BitcoinWalletAdapterError(
-      `[MockAddressWalletAdapter] it's a mock adapter, can't send bitcoin`,
-    )
-  }
-
-  sendInscription(
-    fromAddress: string,
-    receiverAddress: string,
-    inscriptionId: string,
-  ): Promise<{ txid: string }> {
-    throw new BitcoinWalletAdapterError(
-      `[MockAddressWalletAdapter] it's a mock adapter, can't send inscription`,
-    )
-  }
-
   signAndFinalizePsbt(psbtHex: string): Promise<{ signedPsbtHex: string }> {
     throw new BitcoinWalletAdapterError(
       `[MockAddressWalletAdapter] it's a mock adapter, can't sign transaction`,
@@ -195,5 +207,19 @@ export class MockAddressWalletAdapter implements WalletAdapter {
         // No-op
       },
     }
+  }
+
+  get sendBitcoinFeeRateCapability(): WalletAdapterSendBitcoinCapability {
+    return this.inner.sendBitcoinFeeRateCapability
+  }
+
+  sendBitcoin(
+    fromAddress: string,
+    receiverAddress: string,
+    satoshiAmount: bigint,
+  ): Promise<{ txid: string }> {
+    throw new BitcoinWalletAdapterError(
+      `[MockAddressWalletAdapter] it's a mock adapter, can't send bitcoin`,
+    )
   }
 }

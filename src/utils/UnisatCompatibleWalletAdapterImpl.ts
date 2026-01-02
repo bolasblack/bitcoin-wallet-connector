@@ -19,6 +19,7 @@ import {
   WalletAdapterAddressType,
   WalletAdapterBitcoinNetwork,
   WalletAdapterNotConnectedError,
+  WalletAdapterSendBitcoinCapability,
 } from "../WalletAdapters.types"
 
 /**
@@ -214,7 +215,7 @@ export class UnisatCompatibleWalletAdapterImpl implements WalletAdapter {
     }
   }
 
-  sendBitcoinFeeRateCapability: WalletAdapter["sendBitcoinFeeRateCapability"] =
+  sendBitcoinFeeRateCapability: WalletAdapterSendBitcoinCapability =
     "available" as const
   async sendBitcoin(
     fromAddress: string,
@@ -230,8 +231,16 @@ export class UnisatCompatibleWalletAdapterImpl implements WalletAdapter {
     return { txid }
   }
 
-  sendInscriptionFeeRateCapability: WalletAdapter["sendInscriptionFeeRateCapability"] =
+  /**
+   * @internal
+   * @experimental
+   */
+  sendInscriptionFeeRateCapability: "unavailable" | "available" | "required" =
     "available" as const
+  /**
+   * @internal
+   * @experimental
+   */
   async sendInscription(
     fromAddress: string,
     receiverAddress: string,

@@ -3,7 +3,7 @@ import type { UnisatCompatibleProviderAPI } from "../utils/UnisatCompatibleWalle
 import type {
   WalletAdapter,
   WalletAdapterMetadata,
-  WalletAdapterStatic,
+  WalletAdapterFactory,
 } from "../WalletAdapters.types"
 
 /**
@@ -21,7 +21,7 @@ const metadata: WalletAdapterMetadata = {
   /**
    * https://next-cdn.unisat.io/_/2025-v965/UniSat%20Logo.zip
    */
-  iconUrl: import("../_/unisat.svg").then(m => m.default),
+  iconUrl: () => import("../_/unisat.svg").then(m => m.default),
   websiteUrl: "https://unisat.io/",
   downloadUrl: "https://unisat.io/download",
 }
@@ -43,8 +43,10 @@ const availability = createAvailability<
   },
 })
 
-export const UnisatWalletAdapter: WalletAdapterStatic<WalletAdapter> = {
-  adapterId,
-  metadata,
-  getAdapter: () => availability,
+export function UnisatWalletAdapterFactory(): WalletAdapterFactory<WalletAdapter> {
+  return {
+    adapterId,
+    metadata,
+    getAdapter: () => availability,
+  }
 }

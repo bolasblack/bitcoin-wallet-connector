@@ -86,6 +86,10 @@ export class OkxWalletAdapterImpl
     )
   }
 
+  /**
+   * @internal
+   * @experimental
+   */
   async sendInscription(
     fromAddress: string,
     receiverAddress: string,

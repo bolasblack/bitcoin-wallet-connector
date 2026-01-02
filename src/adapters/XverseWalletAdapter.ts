@@ -1,6 +1,6 @@
 import type {
   WalletAdapter,
-  WalletAdapterStatic,
+  WalletAdapterFactory,
 } from "../WalletAdapters.types"
 import { createAvailability } from "../utils/createAdapterAvailability"
 
@@ -8,7 +8,7 @@ export const XVERSE_PROVIDER_ID = "XverseProviders.BitcoinProvider"
 
 const metadata = {
   name: "Xverse",
-  iconUrl: import("../_/xverse.png").then(m => m.default),
+  iconUrl: () => import("../_/xverse.png").then(m => m.default),
   websiteUrl: "https://xverse.app/",
   downloadUrl: "https://www.xverse.app/download",
 }
@@ -30,8 +30,10 @@ const availability = createAvailability<
   },
 })
 
-export const XverseWalletAdapter: WalletAdapterStatic<WalletAdapter> = {
-  adapterId: XVERSE_PROVIDER_ID,
-  metadata,
-  getAdapter: () => availability,
+export function XverseWalletAdapterFactory(): WalletAdapterFactory<WalletAdapter> {
+  return {
+    adapterId: XVERSE_PROVIDER_ID,
+    metadata,
+    getAdapter: () => availability,
+  }
 }
