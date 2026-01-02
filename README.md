@@ -21,11 +21,11 @@ This library is carefully designed with a focus on **API compatibility** and **d
 
 | Wallet                                     | Adapter                         | Optional Dependency |
 | ------------------------------------------ | ------------------------------- | ------------------- |
-| [Unisat](https://unisat.io/)               | `UnisatWalletAdapter`           | -                   |
-| [Xverse](https://www.xverse.app/)          | `XverseWalletAdapter`           | `sats-connect`      |
-| [OKX](https://www.okx.com/web3)            | `OkxWalletAdapter`              | -                   |
-| [Leather](https://leather.io/)             | `LeatherWalletAdapter`          | `@leather.io/rpc`   |
-| [Bitget](https://web3.bitget.com/)         | `BitgetWalletAdapter`           | -                   |
+| [Unisat](https://unisat.io/)               | `UnisatWalletAdapterFactory`    | -                   |
+| [Xverse](https://www.xverse.app/)          | `XverseWalletAdapterFactory`    | `sats-connect`      |
+| [OKX](https://www.okx.com/web3)            | `OkxWalletAdapterFactory`       | -                   |
+| [Leather](https://leather.io/)             | `LeatherWalletAdapterFactory`   | `@leather.io/rpc`   |
+| [Bitget](https://web3.bitget.com/)         | `BitgetWalletAdapterFactory`    | -                   |
 | [Magic Eden](https://wallet.magiceden.io/) | `MagicEdenWalletAdapterFactory` | `sats-connect`      |
 
 ## Installation
@@ -55,14 +55,14 @@ pnpm add react
 
 ```typescript
 import {
-  BitcoinWalletAdapterConnector,
-  UnisatWalletAdapter,
-  XverseWalletAdapter,
+  BitcoinWalletConnector,
+  UnisatWalletAdapterFactory,
+  XverseWalletAdapterFactory,
 } from "bitcoin-wallet-connector"
 
-const connector = new BitcoinWalletAdapterConnector([
-  UnisatWalletAdapter,
-  XverseWalletAdapter,
+const connector = new BitcoinWalletConnector([
+  UnisatWalletAdapterFactory(),
+  XverseWalletAdapterFactory(),
 ])
 
 // Get available wallets
@@ -91,11 +91,14 @@ import {
   useBitcoinConnectionContext,
 } from "bitcoin-wallet-connector/react"
 import {
-  UnisatWalletAdapter,
-  XverseWalletAdapter,
+  UnisatWalletAdapterFactory,
+  XverseWalletAdapterFactory,
 } from "bitcoin-wallet-connector/adapters"
 
-const adapterFactories = [UnisatWalletAdapter, XverseWalletAdapter]
+const adapterFactories = [
+  UnisatWalletAdapterFactory(),
+  XverseWalletAdapterFactory(),
+]
 
 function App() {
   return (
