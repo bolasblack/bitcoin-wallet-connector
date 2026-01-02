@@ -1,30 +1,34 @@
 import { Meta, StoryFn } from "@storybook/react-vite"
-import React, { useState } from "react"
+import React, { FC, useEffect, useState } from "react"
 import {
   BitcoinConnectionProvider,
   useBitcoinConnectionContext,
   WalletSession,
 } from "./BitcoinConnectionProvider"
 import {
+  WalletAdapter,
   WalletAdapterAddress,
   WalletAdapterBitcoinNetwork,
+  WalletAdapterFactory,
 } from "./WalletAdapters.types"
 import {
-  UnisatWalletAdapter,
-  XverseWalletAdapter,
-  OkxWalletAdapter,
-  LeatherWalletAdapter,
-  BitgetWalletAdapter,
+  UnisatWalletAdapterFactory,
+  XverseWalletAdapterFactory,
+  OkxWalletAdapterFactory,
+  LeatherWalletAdapterFactory,
+  BitgetWalletAdapterFactory,
   MagicEdenWalletAdapterFactory,
 } from "./adapters"
 
-const adapterFactories = [
-  UnisatWalletAdapter,
-  XverseWalletAdapter,
-  OkxWalletAdapter,
-  LeatherWalletAdapter,
-  BitgetWalletAdapter,
-  MagicEdenWalletAdapterFactory(WalletAdapterBitcoinNetwork.MAINNET),
+const adapterFactories: WalletAdapterFactory<WalletAdapter>[] = [
+  UnisatWalletAdapterFactory(),
+  XverseWalletAdapterFactory(),
+  OkxWalletAdapterFactory(),
+  LeatherWalletAdapterFactory(),
+  BitgetWalletAdapterFactory(),
+  MagicEdenWalletAdapterFactory({
+    network: WalletAdapterBitcoinNetwork.MAINNET,
+  }),
 ]
 
 export default {
@@ -104,34 +108,49 @@ const WalletConnectionContent = (): React.ReactElement => {
       <div style={{ marginBottom: "16px" }}>
         <h3>Available Wallets ({ctx.availableAdapters.length})</h3>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-          {ctx.availableAdapters.map(([adapterId, adapter]) => (
-            <button
-              key={adapterId}
-              onClick={() => {
-                addDebugInfo(`Connecting to ${adapterId}...`)
-                ctx
-                  .connect(adapterId, adapter)
-                  .then(() => {
-                    addDebugInfo(`Connected to ${adapterId}`)
-                  })
-                  .catch(err => {
-                    addDebugInfo(`Failed to connect: ${err.message}`)
-                  })
-              }}
-              disabled={ctx.isConnectionInitializing}
-              style={{
-                padding: "8px 16px",
-                cursor: ctx.isConnectionInitializing
-                  ? "not-allowed"
-                  : "pointer",
-                border: "1px solid #ccc",
-                borderRadius: "4px",
-                background: "#fff",
-              }}
-            >
-              {adapterId}
-            </button>
-          ))}
+          {ctx.availableAdapters.map(([adapterId, adapter]) => {
+            const factory = adapterFactories.find(
+              factory => factory.adapterId === adapterId,
+            )!
+
+            return (
+              <div
+                key={adapterId}
+                onClick={() => {
+                  addDebugInfo(`Connecting to ${adapterId}...`)
+                  ctx
+                    .connect(adapterId, adapter)
+                    .then(() => {
+                      addDebugInfo(`Connected to ${adapterId}`)
+                    })
+                    .catch(err => {
+                      addDebugInfo(`Failed to connect: ${err.message}`)
+                    })
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "8px 16px",
+                  cursor: ctx.isConnectionInitializing
+                    ? "not-allowed"
+                    : "pointer",
+                  border: "1px solid #ccc",
+                  borderRadius: "4px",
+                  background: "#fff",
+                }}
+              >
+                {ctx.isConnectionInitializing ? (
+                  "Connecting..."
+                ) : (
+                  <>
+                    <WalletIcon adapterFactory={factory} />
+                    <span>{factory.metadata.name}</span>
+                  </>
+                )}
+              </div>
+            )
+          })}
         </div>
       </div>
 
@@ -248,7 +267,7 @@ const WalletConnectionContent = (): React.ReactElement => {
         <h3>Registered Adapter Factories ({ctx.adapterFactories.length})</h3>
         <ul>
           {ctx.adapterFactories.map((factory, i) => (
-            <li key={i}>{factory.adapterId}</li>
+            <li key={i}>{factory.metadata.name}</li>
           ))}
         </ul>
       </div>
@@ -303,7 +322,6 @@ export const Default: StoryFn<typeof BitcoinConnectionProvider> = () => {
         addEvent(`Addresses changed: ${addresses.length} addresses`)
       }}
       onWalletDisconnected={() => {
-        debugger
         addEvent("Wallet disconnected")
       }}
     >
@@ -325,5 +343,55 @@ export const Default: StoryFn<typeof BitcoinConnectionProvider> = () => {
         </div>
       )}
     </BitcoinConnectionProvider>
+  )
+}
+
+const WalletIcon: FC<{
+  adapterFactory: WalletAdapterFactory<WalletAdapter>
+}> = ({ adapterFactory }) => {
+  const [iconUrl, setIconUrl] = useState<null | string>(null)
+
+  useEffect(() => {
+    const abortController = new AbortController()
+
+    void adapterFactory.metadata
+      .iconUrl()
+      .then(url => {
+        if (abortController.signal.aborted) return
+        setIconUrl(url)
+      })
+      .catch(err => {
+        console.error(
+          "Failed to load icon for ",
+          adapterFactory.metadata.name,
+          err,
+        )
+      })
+
+    return () => {
+      abortController.abort()
+    }
+  }, [adapterFactory.metadata])
+
+  if (!iconUrl) {
+    return (
+      <div
+        style={{
+          width: "24px",
+          height: "24px",
+          marginRight: "8px",
+          borderRadius: "4px",
+          background: "#eaeaea",
+        }}
+      ></div>
+    )
+  }
+
+  return (
+    <img
+      src={iconUrl}
+      alt={adapterFactory.metadata.name}
+      style={{ width: "24px", height: "24px", marginRight: "8px" }}
+    />
   )
 }
