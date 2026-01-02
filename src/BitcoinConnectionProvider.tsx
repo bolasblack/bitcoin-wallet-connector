@@ -9,11 +9,11 @@ import {
   useRef,
   useState,
 } from "react"
-import { BitcoinWalletAdapterConnector } from "./BitcoinWalletAdapterConnector"
+import { BitcoinWalletConnector } from "./BitcoinWalletConnector"
 import {
   WalletAdapter,
   WalletAdapterAddress,
-  WalletAdapterStatic,
+  WalletAdapterFactory,
 } from "./WalletAdapters.types"
 
 export interface WalletSession {
@@ -30,7 +30,7 @@ export interface BitcoinConnectionContextValue {
   disconnect: () => Promise<void>
 
   // Wallet management (for UI)
-  adapterFactories: WalletAdapterStatic<WalletAdapter>[]
+  adapterFactories: WalletAdapterFactory<WalletAdapter>[]
   availableAdapters: (readonly [adapterId: string, adapter: WalletAdapter])[]
 }
 
@@ -55,7 +55,7 @@ function useConnectorState<T>(
 
 export const BitcoinConnectionProvider: FC<{
   children: ReactNode
-  adapterFactories: WalletAdapterStatic<WalletAdapter>[]
+  adapterFactories: WalletAdapterFactory<WalletAdapter>[]
   onWalletConnected?: (session: WalletSession) => void
   onWalletAddressesChanged?: (addresses: WalletAdapterAddress[]) => void
   onWalletDisconnected?: () => void
@@ -71,7 +71,7 @@ export const BitcoinConnectionProvider: FC<{
   const onWalletDisconnected = usePersistFn(props.onWalletDisconnected ?? noop)
 
   const connector = useMemo(
-    () => new BitcoinWalletAdapterConnector(props.adapterFactories),
+    () => new BitcoinWalletConnector(props.adapterFactories),
     [props.adapterFactories],
   )
 

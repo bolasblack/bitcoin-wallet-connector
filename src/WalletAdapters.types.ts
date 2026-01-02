@@ -84,12 +84,12 @@ export interface WalletAdapterAddress extends Partial<
 
 export interface WalletAdapterMetadata {
   name: string
-  iconUrl: Promise<string>
+  iconUrl: () => Promise<string>
   websiteUrl: string
   downloadUrl: string
 }
 
-export interface WalletAdapterStatic<T extends WalletAdapter> {
+export interface WalletAdapterFactory<T extends WalletAdapter> {
   adapterId: string
   metadata: WalletAdapterMetadata
   getAdapter(): Availability<T>
@@ -111,33 +111,24 @@ export interface WalletAdapter {
 
   signMessage(address: string, message: string): Promise<SignMessageResult>
 
-  readonly sendBitcoinFeeRateCapability:
-    | "unavailable"
-    | "available"
-    | "required"
+  signAndFinalizePsbt(
+    psbtHex: string,
+    signIndices: [address: string, signIndex: number][],
+  ): Promise<{ signedPsbtHex: string }>
+
+  sendBitcoinFeeRateCapability: WalletAdapterSendBitcoinCapability
   sendBitcoin(
     fromAddress: string,
     receiverAddress: string,
     satoshiAmount: bigint,
     options?: { feeRate?: number },
   ): Promise<{ txid: string }>
-
-  readonly sendInscriptionFeeRateCapability:
-    | "unavailable"
-    | "available"
-    | "required"
-  sendInscription?(
-    fromAddress: string,
-    receiverAddress: string,
-    inscriptionId: string,
-    options?: { feeRate?: number },
-  ): Promise<{ txid: string }>
-
-  signAndFinalizePsbt(
-    psbtHex: string,
-    signIndices: [address: string, signIndex: number][],
-  ): Promise<{ signedPsbtHex: string }>
 }
+
+export type WalletAdapterSendBitcoinCapability =
+  | "unavailable"
+  | "available"
+  | "required"
 
 export class WalletAdapterErrorBase extends Error {
   constructor(message: string) {
