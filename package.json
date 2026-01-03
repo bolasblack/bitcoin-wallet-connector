@@ -2,6 +2,29 @@
   "name": "bitcoin-wallet-connector",
   "version": "0.2.0",
   "description": "A Bitcoin wallet connector with various adapters.",
+  "license": "MIT",
+  "author": "c4605",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bolasblack/bitcoin-wallet-connector.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bolasblack/bitcoin-wallet-connector/issues"
+  },
+  "homepage": "https://github.com/bolasblack/bitcoin-wallet-connector#readme",
+  "keywords": [
+    "bitcoin",
+    "wallet",
+    "adapter",
+    "unisat",
+    "xverse",
+    "okx",
+    "leather",
+    "bitget",
+    "magic-eden",
+    "web3"
+  ],
+  "sideEffects": false,
   "main": "lib/index.js",
   "module": "lib/index.mjs",
   "types": "lib/index.d.ts",
