@@ -46,9 +46,6 @@ pnpm add sats-connect
 
 # For Leather wallet support
 pnpm add @leather.io/rpc
-
-# For React integration
-pnpm add react
 ```
 
 ## Usage
@@ -158,37 +155,25 @@ All adapters implement the following interface:
 interface WalletAdapter {
   connect(): Promise<void>
   disconnect(): Promise<void>
+
   getAddresses(): Promise<WalletAdapterAddress[]>
-  onAddressesChanged(callback): { unsubscribe: () => void }
+
   signMessage(address: string, message: string): Promise<SignMessageResult>
+
+  sendBitcoinFeeRateCapability: WalletAdapterSendBitcoinCapability
   sendBitcoin(
     fromAddress: string,
     receiverAddress: string,
     satoshiAmount: bigint,
     options?: { feeRate?: number },
   ): Promise<{ txid: string }>
+
   signAndFinalizePsbt(
     psbtHex: string,
     signIndices: [address: string, signIndex: number][],
   ): Promise<{ signedPsbtHex: string }>
-}
-```
 
-### Address Types
-
-```typescript
-enum WalletAdapterAddressType {
-  P2SH_P2WPKH = "p2sh-p2wpkh", // Nested SegWit
-  P2WPKH = "p2wpkh", // Native SegWit
-  P2TR = "p2tr", // Taproot
-  P2PKH = "p2pkh", // Legacy
-}
-
-enum WalletAdapterAddressPurpose {
-  Bitcoin = "bitcoin",
-  Ordinals = "ordinals",
-  BRC20 = "brc20",
-  Runes = "runes",
+  onAddressesChanged(callback): { unsubscribe: () => void }
 }
 ```
 
