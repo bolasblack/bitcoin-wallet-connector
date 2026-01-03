@@ -95,10 +95,6 @@ export interface WalletAdapterFactory<T extends WalletAdapter> {
   getAdapter(): Availability<T>
 }
 
-export type WalletAdapter_onAddressesChanged_callback = (data: {
-  addresses: WalletAdapterAddress[]
-}) => void
-
 export interface WalletAdapter {
   connect(): Promise<void>
 
@@ -116,7 +112,7 @@ export interface WalletAdapter {
     signIndices: [address: string, signIndex: number][],
   ): Promise<{ signedPsbtHex: string }>
 
-  sendBitcoinFeeRateCapability: WalletAdapterSendBitcoinCapability
+  sendBitcoinFeeRateCapability: WalletAdapter_sendBitcoinFeeRateCapability
   sendBitcoin(
     fromAddress: string,
     receiverAddress: string,
@@ -125,7 +121,15 @@ export interface WalletAdapter {
   ): Promise<{ txid: string }>
 }
 
-export type WalletAdapterSendBitcoinCapability =
+export type WalletAdapter_onAddressesChanged_callbackData = {
+  addresses: WalletAdapterAddress[]
+}
+
+export type WalletAdapter_onAddressesChanged_callback = (
+  data: WalletAdapter_onAddressesChanged_callbackData,
+) => void
+
+export type WalletAdapter_sendBitcoinFeeRateCapability =
   | "unavailable"
   | "available"
   | "required"

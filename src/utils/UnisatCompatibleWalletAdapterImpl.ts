@@ -19,7 +19,7 @@ import {
   WalletAdapterAddressType,
   WalletAdapterBitcoinNetwork,
   WalletAdapterNotConnectedError,
-  WalletAdapterSendBitcoinCapability,
+  WalletAdapter_sendBitcoinFeeRateCapability,
 } from "../WalletAdapters.types"
 
 /**
@@ -215,7 +215,7 @@ export class UnisatCompatibleWalletAdapterImpl implements WalletAdapter {
     }
   }
 
-  sendBitcoinFeeRateCapability: WalletAdapterSendBitcoinCapability =
+  sendBitcoinFeeRateCapability: WalletAdapter_sendBitcoinFeeRateCapability =
     "available" as const
   async sendBitcoin(
     fromAddress: string,

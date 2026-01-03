@@ -20,7 +20,7 @@ import {
   WalletAdapterAddressType,
   WalletAdapterBitcoinNetwork,
   WalletAdapterFactory,
-  WalletAdapterSendBitcoinCapability,
+  WalletAdapter_sendBitcoinFeeRateCapability,
 } from "../WalletAdapters.types"
 
 const randomTapInternalKey =
@@ -209,7 +209,7 @@ class MockAddressWalletAdapter implements WalletAdapter {
     }
   }
 
-  get sendBitcoinFeeRateCapability(): WalletAdapterSendBitcoinCapability {
+  get sendBitcoinFeeRateCapability(): WalletAdapter_sendBitcoinFeeRateCapability {
     return this.inner.sendBitcoinFeeRateCapability
   }
 
