@@ -1,6 +1,6 @@
 {
   "name": "bitcoin-wallet-connector",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "A Bitcoin wallet connector with various adapters.",
   "license": "MIT",
   "author": "c4605",
