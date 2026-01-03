@@ -27,12 +27,6 @@ export class UnisatWalletAdapterImpl
 
   sendBitcoinFeeRateCapability = "required" as const
 
-  /**
-   * @internal
-   * @experimental
-   */
-  sendInscriptionFeeRateCapability = "unavailable" as const
-
   // The default fee rate of unisat is not aligned with mempool.space, so
   // sometimes the tx will be rejected by mempool due to uneligible network fee.
 }

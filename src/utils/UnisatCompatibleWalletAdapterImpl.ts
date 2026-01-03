@@ -261,8 +261,6 @@ export class UnisatCompatibleWalletAdapterImpl implements WalletAdapter {
   ): Promise<{
     signedPsbtHex: string
   }> {
-    const addr = await this.getAddresses()
-
     const signedPsbtHex = await handleRpcError(
       this.unisat.signPsbt(psbtHex, {
         autoFinalized: false,
