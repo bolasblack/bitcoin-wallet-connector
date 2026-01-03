@@ -1,5 +1,11 @@
-import type { RequestFn, RpcErrorBody, RpcErrorResponse } from "@leather.io/rpc"
+import type {
+  RequestFn,
+  RpcEndpointMap,
+  RpcErrorBody,
+  RpcErrorResponse,
+} from "@leather.io/rpc"
 import { hex } from "@scure/base"
+import * as btc from "@scure/btc-signer"
 import { LOCAL_STORAGE_KEY_PREFIX } from "../constants"
 import {
   addressToScriptPubKey,
@@ -20,7 +26,11 @@ import {
 } from "../WalletAdapters.types"
 import { adapterId, metadata } from "./LeatherWalletAdapter"
 
-type GetAddressesResponseData = any
+type PickSuccessResponse<T> = T extends { result: unknown } ? T : never
+
+type GetAddressesResponseData = PickSuccessResponse<
+  RpcEndpointMap["getAddresses"]["response"]
+>
 
 /**
  * https://github.com/leather-io/mono/blob/a664e64040fed1c25abef1f8864a1c7fae5444c1/packages/rpc/src/rpc/schemas.ts#L64-L78
@@ -52,7 +62,14 @@ const connectedAddress_localStorageKey = `${localStorageKeyPrefix}:connectedAddr
 export class LeatherWalletAdapterImpl implements WalletAdapter {
   constructor(private request: RequestFn) {}
 
+  private retrieveConnectedAddress_inMemory:
+    | GetAddressesResponseData
+    | undefined
   private retrieveConnectedAddress(): GetAddressesResponseData | undefined {
+    if (this.retrieveConnectedAddress_inMemory != null) {
+      return this.retrieveConnectedAddress_inMemory
+    }
+
     let resp: GetAddressesResponseData | undefined
     const stored =
       localStorage.getItem(connectedAddress_localStorageKey) || undefined
@@ -66,10 +83,12 @@ export class LeatherWalletAdapterImpl implements WalletAdapter {
         ) {
           throw new Error("Invalid stored addresses")
         }
+        this.retrieveConnectedAddress_inMemory = resp
       } catch {
         localStorage.removeItem(connectedAddress_localStorageKey)
       }
     }
+
     return resp
   }
 
@@ -81,6 +100,7 @@ export class LeatherWalletAdapterImpl implements WalletAdapter {
          */
         this.request("getAddresses"),
       )
+      this.retrieveConnectedAddress_inMemory = resp
       localStorage.setItem(
         connectedAddress_localStorageKey,
         JSON.stringify(resp),
@@ -89,6 +109,7 @@ export class LeatherWalletAdapterImpl implements WalletAdapter {
   }
 
   async disconnect(): Promise<void> {
+    this.retrieveConnectedAddress_inMemory = undefined
     localStorage.removeItem(connectedAddress_localStorageKey)
     return Promise.resolve()
   }
@@ -100,7 +121,7 @@ export class LeatherWalletAdapterImpl implements WalletAdapter {
       throw new WalletAdapterNotConnectedError(metadata.name)
     }
 
-    const addresses = resp.addresses.filter(
+    const addresses = resp.result.addresses.filter(
       (a: any) => (a as any).symbol === "BTC" && a.type,
     )
 
@@ -158,7 +179,7 @@ export class LeatherWalletAdapterImpl implements WalletAdapter {
       addressType === WalletAdapterAddressType.P2TR ? 'p2tr' as const :
       undefined
     if (paymentType == null) {
-      throw new BitcoinWalletAdapterError("Address is not supported")
+      throw new BitcoinWalletAdapterError(`Address ${address} is not supported`)
     }
 
     const resp: any = await handleRpcError(
@@ -182,24 +203,42 @@ export class LeatherWalletAdapterImpl implements WalletAdapter {
     }
   }
 
-  sendBitcoinFeeRateCapability = "required" as const
+  sendBitcoinFeeRateCapability = "unavailable" as const
   async sendBitcoin(
     fromAddress: string,
     receiverAddress: string,
     satoshiAmount: bigint,
-    options?: { feeRate?: number },
   ): Promise<{ txid: string }> {
+    const addresses = await this.getAddresses()
+    const foundAddressIndex = addresses.findIndex(
+      a => a.address === fromAddress,
+    )
+    if (foundAddressIndex < 0) {
+      throw new BitcoinWalletAdapterError(
+        `Address ${fromAddress} is not supported`,
+      )
+    }
+
     const resp: any = await handleRpcError(
       /**
-       * https://leather.gitbook.io/developers/bitcoin-methods/sendbitcoin
+       * https://leather.gitbook.io/developers/bitcoin-methods/sendtransfer
        */
-      (this.request as any)("sendBitcoin", {
-        origin: fromAddress,
-        destination: receiverAddress,
-        amount: satoshiAmount,
-        feeRate: options?.feeRate,
+      this.request("sendTransfer", {
+        recipients: [
+          {
+            address: receiverAddress,
+            amount: satoshiAmount.toString(),
+          },
+        ],
+        account: foundAddressIndex,
+        network:
+          addresses[foundAddressIndex].network ===
+          WalletAdapterBitcoinNetwork.MAINNET
+            ? "mainnet"
+            : "testnet",
       }),
     )
+
     return { txid: resp.txid }
   }
 
@@ -207,35 +246,7 @@ export class LeatherWalletAdapterImpl implements WalletAdapter {
    * @internal
    * @experimental
    */
-  sendInscriptionFeeRateCapability = "available" as const
-  /**
-   * @internal
-   * @experimental
-   */
-  async sendInscription(
-    fromAddress: string,
-    receiverAddress: string,
-    inscriptionId: string,
-    options?: { feeRate?: number },
-  ): Promise<{ txid: string }> {
-    const { txid }: any = await handleRpcError(
-      /**
-       * https://leather.gitbook.io/developers/ordinals/send-ordinals
-       */
-      (this.request as any)("sendOrdinals", {
-        ordinals: [
-          {
-            destination: receiverAddress,
-            id: inscriptionId,
-          },
-        ],
-        paymentType: "p2wpkh",
-        sender: fromAddress,
-        feeRate: options?.feeRate,
-      }),
-    )
-    return { txid }
-  }
+  sendInscriptionFeeRateCapability = "unavailable" as const
 
   async signAndFinalizePsbt(
     psbtHex: string,
@@ -243,34 +254,26 @@ export class LeatherWalletAdapterImpl implements WalletAdapter {
   ): Promise<{
     signedPsbtHex: string
   }> {
-    const accounts = await this.getAddresses()
-    const signingAccount = accounts.find(
-      account => account.address === signIndices[0]?.[0],
-    )
-    if (signingAccount == null) {
-      throw new WalletAdapterNotConnectedError(metadata.name)
-    }
-
     const resp: any = await handleRpcError(
       /**
-       * https://leather.gitbook.io/developers/bitcoin-methods/signandfinalizepsbt
+       * https://leather.gitbook.io/developers/bitcoin-methods/signpsbt
        */
-      (this.request as any)("signAndFinalizePsbt", {
+      this.request("signPsbt", {
         hex: psbtHex,
-        inputsToSign: signIndices.map(([address, signIndex]) => ({
-          address,
-          signingIndexes: [signIndex],
-          signatureHash: undefined,
-          disableTweakSigner: undefined,
-        })),
-        paymentType:
-          signingAccount.addressType === WalletAdapterAddressType.P2TR
-            ? "p2tr"
-            : "p2wpkh",
+        signAtIndex: signIndices.map(([, signIndex]) => signIndex),
       }),
     )
 
-    return { signedPsbtHex: resp.hex }
+    // signPsbt returns a signed but not finalized PSBT, need to finalize it
+    const tx = btc.Transaction.fromPSBT(hex.decode(resp.hex), {
+      allowUnknownInputs: true,
+      allowUnknownOutputs: true,
+      disableScriptCheck: true,
+      allowLegacyWitnessUtxo: true,
+    })
+    tx.finalize()
+
+    return { signedPsbtHex: hex.encode(tx.toPSBT()) }
   }
 
   onAddressesChanged(callback: WalletAdapter_onAddressesChanged_callback): {
