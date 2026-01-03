@@ -64,11 +64,18 @@ const connector = new BitcoinWalletConnector([
   XverseWalletAdapterFactory(),
 ])
 
-// Get available wallets
-const availableAdapters = connector.getAvailableAdapters()
-// => [['unisat', adapter], ['xverse', adapter], ...]
+// Subscribe to available wallets
+// Note: Wallet extensions inject APIs at unpredictable times,
+// so prefer subscribe over getAvailableAdapters()
+connector.subscribeAvailableAdapters(availableAdapters => {
+  console.log(
+    "Available:",
+    availableAdapters.map(([id]) => id),
+  )
+  // => ['unisat', 'xverse', ...]
+})
 
-// Connect to a wallet
+// Connect to a wallet (usually triggered by user clicking a wallet button)
 const [adapterId, adapter] = availableAdapters[0]
 await connector.connect(adapterId, adapter)
 

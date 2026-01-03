@@ -38,11 +38,34 @@ export class BitcoinWalletConnector {
     this.connectedInfoState = new StateChannel<null | ConnectInfo>(null)
   }
 
+  /**
+   * Subscribe to available adapters changes.
+   *
+   * **Recommended over `getAvailableAdapters()`** because wallet extensions
+   * inject their APIs at unpredictable times (some at DOMContentLoaded, some
+   * at load event, etc.). Using subscribe ensures you don't miss any wallets.
+   *
+   * @example
+   * ```ts
+   * connector.subscribeAvailableAdapters(adapters => {
+   *   console.log('Available wallets:', adapters.map(([id]) => id))
+   * })
+   * ```
+   */
   subscribeAvailableAdapters(
     listener: StateChannelListener<AdapterEntry[]>,
   ): AvailabilitySubscription {
     return this.availableAdaptersState.subscribe(listener)
   }
+
+  /**
+   * Get currently available adapters.
+   *
+   * **Note:** Wallet extensions inject their APIs at unpredictable times
+   * (some at DOMContentLoaded, some at load event, etc.). This method only
+   * returns wallets that have been detected so far. Consider using
+   * `subscribeAvailableAdapters()` instead to ensure you don't miss any wallets.
+   */
   getAvailableAdapters(): AdapterEntry[] {
     return this.availableAdaptersState.getValue()
   }
