@@ -2,7 +2,7 @@
 
 A unified interface for interacting with multiple Bitcoin wallet browser extensions.
 
-**[Demo](https://bitcoin-wallet-connector.netlify.app/)**
+**[Demo](https://bitcoin-wallet-connector.netlify.app/iframe.html?id=components-bitcoinconnectionprovider--default&viewMode=story)** / **[Storybook](https://bitcoin-wallet-connector.netlify.app/)**
 
 ## Features
 
