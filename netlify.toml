@@ -1,0 +1,10 @@
+[build]
+  base = ""
+  publish = "storybook-static"
+  command = "pnpm build-storybook"
+
+[[redirects]]
+  from = "/*"
+  to = "/"
+  status = 200
+  force = false

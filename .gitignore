@@ -1,4 +1,5 @@
 node_modules/
 lib/
 dist/
+storybook-static/
 .claude/settings.local.json

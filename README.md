@@ -1,6 +1,8 @@
-# bitcoin-wallet-connector
+# bitcoin-wallet-connector [![Netlify Status](https://api.netlify.com/api/v1/badges/225930d8-e726-4971-8f88-d931576bec64/deploy-status)](https://bitcoin-wallet-connector.netlify.app/)
 
 A unified interface for interacting with multiple Bitcoin wallet browser extensions.
+
+**[Demo](https://bitcoin-wallet-connector.netlify.app/)**
 
 ## Features
 
