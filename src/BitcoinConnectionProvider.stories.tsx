@@ -42,6 +42,12 @@ const WalletConnectionContent = (): React.ReactElement => {
   const [selectedAddress, setSelectedAddress] = useState<string>("")
   const [signResult, setSignResult] = useState<string>("")
   const [isSigning, setIsSigning] = useState(false)
+  // sendBitcoin state
+  const [sendFromAddress, setSendFromAddress] = useState<string>("")
+  const [sendToAddress, setSendToAddress] = useState<string>("")
+  const [sendAmount, setSendAmount] = useState<string>("1000")
+  const [sendResult, setSendResult] = useState<string>("")
+  const [isSending, setIsSending] = useState(false)
   const ctx = useBitcoinConnectionContext()
 
   const addDebugInfo = (info: string): void => {
@@ -73,9 +79,61 @@ const WalletConnectionContent = (): React.ReactElement => {
     }
   }
 
+  const handleSendBitcoin = async (): Promise<void> => {
+    if (!ctx.walletSession || !sendFromAddress || !sendToAddress || !sendAmount)
+      return
+
+    const satoshiAmount = BigInt(sendAmount)
+    if (satoshiAmount <= 0n) {
+      addDebugInfo("Invalid amount")
+      return
+    }
+
+    setIsSending(true)
+    addDebugInfo(
+      `Sending ${sendAmount} sats from ${sendFromAddress.slice(0, 10)}... to ${sendToAddress.slice(0, 10)}...`,
+    )
+
+    try {
+      const result = await ctx.walletSession.adapter.sendBitcoin(
+        sendFromAddress,
+        sendToAddress,
+        satoshiAmount,
+      )
+      setSendResult(JSON.stringify(result, null, 2))
+      addDebugInfo(`Send success: txid ${result.txid.slice(0, 16)}...`)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err)
+      addDebugInfo(`Send failed: ${message}`)
+      setSendResult(`Error: ${message}`)
+    } finally {
+      setIsSending(false)
+    }
+  }
+
   return (
     <div style={{ padding: "16px", fontFamily: "system-ui, sans-serif" }}>
       <h2 style={{ marginBottom: "16px" }}>Bitcoin Connection Provider Demo</h2>
+
+      <div
+        style={{
+          marginBottom: "16px",
+          padding: "12px",
+          background: "#fff3cd",
+          border: "1px solid #ffc107",
+          borderRadius: "4px",
+          fontSize: "14px",
+          color: "#856404",
+        }}
+      >
+        <strong>Note:</strong> Some features that depend on localStorage (e.g.,
+        Leather wallet connection persistence, auto-connect) may not work in
+        Storybook&apos;s iframe mode. For full functionality, switch to{" "}
+        <strong>isolation mode</strong> by clicking the share icon (
+        <span style={{ fontFamily: "monospace" }}>↗</span>) in the top-right
+        corner and selecting <strong>&quot;Open in isolation mode&quot;</strong>
+        .
+      </div>
 
       <div style={{ marginBottom: "16px" }}>
         <h3>Connection Status</h3>
@@ -257,6 +315,120 @@ const WalletConnectionContent = (): React.ReactElement => {
                 }}
               >
                 {signResult}
+              </pre>
+            </div>
+          )}
+        </div>
+      )}
+
+      {ctx.walletSession && (
+        <div
+          style={{
+            marginBottom: "16px",
+            padding: "12px",
+            border: "1px solid #ddd",
+            borderRadius: "4px",
+          }}
+        >
+          <h3 style={{ marginTop: 0 }}>Send Bitcoin</h3>
+          <div style={{ marginBottom: "8px" }}>
+            <label style={{ display: "block", marginBottom: "4px" }}>
+              From Address:
+            </label>
+            <select
+              value={sendFromAddress}
+              onChange={e => setSendFromAddress(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "8px",
+                borderRadius: "4px",
+                border: "1px solid #ccc",
+              }}
+            >
+              <option value="">-- Select an address --</option>
+              {ctx.walletSession.addresses.map((addr, i) => (
+                <option key={i} value={addr.address}>
+                  [{addr.purposes.join(", ")}] {addr.address.slice(0, 20)}...
+                </option>
+              ))}
+            </select>
+          </div>
+          <div style={{ marginBottom: "8px" }}>
+            <label style={{ display: "block", marginBottom: "4px" }}>
+              To Address:
+            </label>
+            <input
+              type="text"
+              value={sendToAddress}
+              onChange={e => setSendToAddress(e.target.value)}
+              placeholder="bc1q... or 3... or 1..."
+              style={{
+                width: "100%",
+                padding: "8px",
+                borderRadius: "4px",
+                border: "1px solid #ccc",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+          <div style={{ marginBottom: "8px" }}>
+            <label style={{ display: "block", marginBottom: "4px" }}>
+              Amount (satoshis):
+            </label>
+            <input
+              type="number"
+              value={sendAmount}
+              onChange={e => setSendAmount(e.target.value)}
+              min="1"
+              style={{
+                width: "100%",
+                padding: "8px",
+                borderRadius: "4px",
+                border: "1px solid #ccc",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
+          <button
+            onClick={() => void handleSendBitcoin()}
+            disabled={
+              !sendFromAddress || !sendToAddress || !sendAmount || isSending
+            }
+            style={{
+              padding: "8px 16px",
+              cursor:
+                !sendFromAddress || !sendToAddress || !sendAmount || isSending
+                  ? "not-allowed"
+                  : "pointer",
+              border: "1px solid #28a745",
+              borderRadius: "4px",
+              background: "#28a745",
+              color: "#fff",
+              opacity:
+                !sendFromAddress || !sendToAddress || !sendAmount || isSending
+                  ? 0.6
+                  : 1,
+            }}
+          >
+            {isSending ? "Sending..." : "Send Bitcoin"}
+          </button>
+          {sendResult && (
+            <div style={{ marginTop: "8px" }}>
+              <label style={{ display: "block", marginBottom: "4px" }}>
+                Result:
+              </label>
+              <pre
+                style={{
+                  background: "#f8f9fa",
+                  padding: "8px",
+                  borderRadius: "4px",
+                  fontSize: "12px",
+                  overflow: "auto",
+                  maxHeight: "200px",
+                  margin: 0,
+                }}
+              >
+                {sendResult}
               </pre>
             </div>
           )}
